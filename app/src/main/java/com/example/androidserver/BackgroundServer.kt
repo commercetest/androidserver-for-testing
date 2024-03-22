@@ -131,13 +131,18 @@ class BackgroundServer : Service() {
         run {
             when (exchange!!.requestMethod) {
                 "GET" -> {
-                    val uri = exchange.requestURI.toString()
-                    if (uri.contains("askremoteserver", ignoreCase = true)) {
+                    var uri = exchange.requestURI.toString()
+                    val uriparts = uri.split("?", ignoreCase = true, limit = 2)
+
+                    if (2 == uriparts.size && uriparts[1].contains("askremoteserver", ignoreCase = true)) {
+                        Log.d("RemoteRequest", "askremoteserver query parameter found.")
                         runBlocking {
                             val string =
                                 Fuel.get("http://10.0.2.2:6000/assets/gnunetbanner.txt").body
                             Log.d("FuelResponse", string)
                         }
+                        uri = uriparts[0]
+                        Log.d("URL parsed", "URI={$uri}")
                     }
 
                     if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".png") || uri.endsWith(".svg") || uri.endsWith(".txt")) {
