@@ -18,6 +18,9 @@ import androidx.core.content.ContextCompat
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
+import fuel.Fuel
+import fuel.get
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.io.InputStream
 import java.net.Inet4Address
@@ -129,7 +132,12 @@ class BackgroundServer : Service() {
             when (exchange!!.requestMethod) {
                 "GET" -> {
                     val uri = exchange.requestURI.toString()
-                    if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".svg")) {
+                    runBlocking {
+                        val string = Fuel.get("https://publicobject.com/helloworld.txt?" + uri).body
+                        Log.d("FuelResponse", string)
+                    }
+
+                    if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".png") || uri.endsWith(".svg")) {
                         val content = readAssetFile("build$uri")
                         val contentType = determineContentType("build$uri")
                         sendResponse(exchange, content, contentType)
@@ -166,6 +174,7 @@ class BackgroundServer : Service() {
             filePath.endsWith(".css") -> "text/css"
             filePath.endsWith(".js") -> "application/javascript"
             filePath.endsWith(".svg") -> "image/svg+xml"
+            filePath.endsWith(".png") -> "image/png"
             else -> "text/plain"
         }
     }
