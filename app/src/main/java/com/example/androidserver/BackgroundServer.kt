@@ -18,6 +18,9 @@ import androidx.core.content.ContextCompat
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
+import fuel.Fuel
+import fuel.get
+import kotlinx.coroutines.runBlocking
 import java.io.IOException
 import java.io.InputStream
 import java.net.Inet4Address
@@ -128,8 +131,21 @@ class BackgroundServer : Service() {
         run {
             when (exchange!!.requestMethod) {
                 "GET" -> {
-                    val uri = exchange.requestURI.toString()
-                    if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".svg")) {
+                    var uri = exchange.requestURI.toString()
+                    val uriparts = uri.split("?", ignoreCase = true, limit = 2)
+
+                    if (2 == uriparts.size && uriparts[1].contains("askremoteserver", ignoreCase = true)) {
+                        Log.d("RemoteRequest", "askremoteserver query parameter found.")
+                        runBlocking {
+                            val string =
+                                Fuel.get("http://10.0.2.2:6000/assets/gnunetbanner.txt").body
+                            Log.d("FuelResponse", string)
+                        }
+                        uri = uriparts[0]
+                        Log.d("URL parsed", "URI={$uri}")
+                    }
+
+                    if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".png") || uri.endsWith(".svg") || uri.endsWith(".txt")) {
                         val content = readAssetFile("build$uri")
                         val contentType = determineContentType("build$uri")
                         sendResponse(exchange, content, contentType)
@@ -165,7 +181,9 @@ class BackgroundServer : Service() {
             filePath.endsWith(".html") -> "text/html"
             filePath.endsWith(".css") -> "text/css"
             filePath.endsWith(".js") -> "application/javascript"
+            filePath.endsWith(".png") -> "image/png"
             filePath.endsWith(".svg") -> "image/svg+xml"
+            filePath.endsWith(".txt") -> "text/plain"
             else -> "text/plain"
         }
     }

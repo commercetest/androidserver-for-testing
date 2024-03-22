@@ -46,6 +46,9 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation(files("libs/http-2.2.1.jar"))
     implementation(files("libs/sun-common-server.jar"))
+
+    implementation("com.github.kittinunf.fuel:fuel:3.0.0-alpha1")
+
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
