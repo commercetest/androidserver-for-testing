@@ -132,12 +132,15 @@ class BackgroundServer : Service() {
             when (exchange!!.requestMethod) {
                 "GET" -> {
                     val uri = exchange.requestURI.toString()
-                    runBlocking {
-                        val string = Fuel.get("https://publicobject.com/helloworld.txt?" + uri).body
-                        Log.d("FuelResponse", string)
+                    if (uri.contains("askremoteserver", ignoreCase = true)) {
+                        runBlocking {
+                            val string =
+                                Fuel.get("http://10.0.2.2:6000/assets/gnunetbanner.txt").body
+                            Log.d("FuelResponse", string)
+                        }
                     }
 
-                    if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".png") || uri.endsWith(".svg")) {
+                    if (uri.endsWith(".js") || uri.endsWith(".css") || uri.endsWith(".png") || uri.endsWith(".svg") || uri.endsWith(".txt")) {
                         val content = readAssetFile("build$uri")
                         val contentType = determineContentType("build$uri")
                         sendResponse(exchange, content, contentType)
@@ -173,8 +176,9 @@ class BackgroundServer : Service() {
             filePath.endsWith(".html") -> "text/html"
             filePath.endsWith(".css") -> "text/css"
             filePath.endsWith(".js") -> "application/javascript"
-            filePath.endsWith(".svg") -> "image/svg+xml"
             filePath.endsWith(".png") -> "image/png"
+            filePath.endsWith(".svg") -> "image/svg+xml"
+            filePath.endsWith(".txt") -> "text/plain"
             else -> "text/plain"
         }
     }
